@@ -1,6 +1,12 @@
 require('dotenv').config()
 const express = require("express")
 const bodyParser = require("body-parser")
+const {
+    response
+} = require('express')
+const {
+    request
+} = require('http')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -15,12 +21,69 @@ app.use(express.static('../docs'))
 
 app.listen(port, (error) => {
     if (!error) {
-        console.log(`api running on https://localhost:${port}`);
+        console.log(`api running on http://localhost:${port}`);
     } else {
         console.log(error);
     }
 })
 
-app.get("/", (request,response) =>{
-    response.redirect('index.html')
+//returns documentation about endpoints of the api
+app.get("/", (request, response) => {
+    response.status(300).redirect('index.html')
+})
+
+
+//select a random game
+app.get("/getRandomGame", (request, response) => {
+
+})
+
+//select a random game based on a couple of questions
+app.get("/getGameByPreferences", (request, response) => {
+
+})
+
+//select a ranom game from the list of favorited games
+app.get("/getGameListFromFavorites", (request, response) => {
+
+})
+
+//create a new user account and add it to the database
+app.post("/createAccount", (request, response) => {
+
+})
+
+//check user login credentials and let them login
+app.post("/login", (request, response) => {
+
+})
+
+//add a liked game to the user liked list in the database
+app.post("/addLikedGame", (response, request) => {
+
+})
+
+//add a disliked game to the user disliked list in the database
+app.post("/addDislikedGame", (response, request) => {
+
+})
+
+//update user credentials in database
+app.put("/updateAccount", (request, response) => {
+
+})
+
+//delete user account from database
+app.delete("/deleteAccount", (request, response) => {
+
+})
+
+//delete a previously liked game from the user liked list in the database
+app.delete("/deleteLikedGame", (response, request) => {
+
+})
+
+//delete a previously disliked game from the user liked list in the database
+app.delete("/deleteDislikedGame", (response, request) => {
+
 })
