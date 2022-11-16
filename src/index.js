@@ -1,4 +1,4 @@
-require('dotenv').config()
+require('dotenv').config({})
 const express = require("express")
 const bodyParser = require("body-parser")
 const {
@@ -35,7 +35,23 @@ app.get("/", (request, response) => {
 
 //select a random game
 app.get("/getRandomGame", (request, response) => {
-
+    console.log(process.env);
+    try {
+        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page_size=50`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+        
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                response.send(data)
+            })
+    } catch (error) {
+        console.log(error);
+    }
 })
 
 //select a random game based on a couple of questions
