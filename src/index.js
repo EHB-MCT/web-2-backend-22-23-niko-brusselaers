@@ -7,6 +7,9 @@ const {
 const {
     request
 } = require('http')
+const {
+    platform
+} = require('os')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -86,18 +89,35 @@ app.get("/", (request, response) => {
  * 
  * @returns object with result object game
  */
-app.get("/getRandomGame", (request, response) => {
-    console.log(process.env);
+app.get("/getRandomGame", async (request, response) => {
+
+    let randomPage = Math.round(Math.random() * 80) //21250
+    let platform = '4,3,2,6'
+    let metacritic = "70,100"
     try {
-        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page_size=50`)
+        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${randomPage}&page_size=39&platforms=${platform}&metacritic=${metacritic}`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
             .then(response => response.json())
             .then(data => {
-                console.log(data)
-                response.send(data)
+
+                let randomGame = data.results[Math.round(Math.random() * 38)]
+                console.log(randomGame);
+                response.status(200).send({
+                    gameId: randomGame.id,
+                    name: randomGame.name,
+                    image: randomGame.background_image
+                })
             })
     } catch (error) {
         console.log(error);
+    } finally {
+
     }
+
 })
 
 
