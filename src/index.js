@@ -27,23 +27,69 @@ app.listen(port, (error) => {
     }
 })
 
-//returns documentation about endpoints of the api
+/**
+ * object template
+ * 
+ * game{
+ *      gameId(int),
+ *      name(str),
+ *      image(str)
+ * }
+ * 
+ * gamePreferences{
+ *      genres(arr(str)),
+ *      platforms(arr(str)),
+ *      tag(arr(str))
+ * }
+ * 
+ * newUser{
+ *      firstName(str),
+ *      lastName(str),
+ *      username(str),
+ *      email(str),
+ *      password(str)
+ * }
+ * 
+ * loginCredentials{
+ *      username(str),
+ *      password(str)
+ * }
+ * 
+ * updateUserPreferences{
+ *      userId(int),
+ *      gameId(int)
+ * }
+ * 
+ * updateUserCredentials{
+ *      userId(int),
+ *      password(str),
+ *      newPassword(str),
+ *      newUsername(str),
+ *      newEmail(str)
+ * }
+ * 
+ * 
+ */
+
+/**
+ * GET endpoint, return documentation about endpoints of the api
+ * 
+ * @returns html page with list of endpoints
+ */
 app.get("/", (request, response) => {
     response.status(300).redirect('index.html')
 })
 
 
-//select a random game
+/**
+ * GET endpoint, return a random game
+ * 
+ * @returns object with result object game
+ */
 app.get("/getRandomGame", (request, response) => {
     console.log(process.env);
     try {
-        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page_size=50`, {
-                method: "GET",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-        
-            })
+        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page_size=50`)
             .then(response => response.json())
             .then(data => {
                 console.log(data)
@@ -54,52 +100,100 @@ app.get("/getRandomGame", (request, response) => {
     }
 })
 
-//select a random game based on a couple of questions
+
+/**
+ * GET endpoint, return a random game based on a couple of questions
+ * 
+ * @params object gamePreferences: parameters to filter by
+ * @returns object with result object game
+ */
 app.get("/getGameByPreferences", (request, response) => {
 
 })
 
-//select a ranom game from the list of favorited games
+/**
+ * GET endpoint, return a random game from the list of favorited games
+ * 
+ * @params object userId(int): reference id to find user inside database
+ * @returns object with result object game
+ */
 app.get("/getGameListFromFavorites", (request, response) => {
 
 })
 
-//create a new user account and add it to the database
+/**
+ * POST endpoint, create a new user account and add it to the database
+ * 
+ * @params object newUser: object to compare against existing users and to create new user
+ * @return object with result userId(int)
+ */
 app.post("/createAccount", (request, response) => {
 
 })
 
-//check user login credentials and let them login
+/**
+ * POST endpoint, check user login credentials and let them login
+ * 
+ * @params object loginCredentials: object to find and compare user credentials
+ * @returns object with result userId(int)
+ */
 app.post("/login", (request, response) => {
 
 })
 
-//add a liked game to the user liked list in the database
+/**
+ * POST endpoint, add a liked game to the user liked list in the database
+ * 
+ * @params object updateUserPreferences: object to find user and add gameId to their liked games list
+ */
 app.post("/addLikedGame", (response, request) => {
 
 })
 
-//add a disliked game to the user disliked list in the database
+
+/**
+ * POST endpoint, add a disliked game to the user disliked list in the database
+ * 
+ * @params object updateUserPreferences: object to find user and add gameId to their disliked games list
+ */
 app.post("/addDislikedGame", (response, request) => {
 
 })
 
-//update user credentials in database
+/**
+ * PUT endpoint, update user credentials in database
+ * 
+ * @params object updateUserCredentials: object to find and compare user details, aswell update them
+ * @returns object userId(int)
+ */
 app.put("/updateAccount", (request, response) => {
 
 })
 
-//delete user account from database
+/**
+ * DELETE endpoint, delete user account from database
+ * 
+ * @params object deleteUser: object to find and compare user details
+ * @returns object userId(int)
+ */
 app.delete("/deleteAccount", (request, response) => {
 
 })
 
-//delete a previously liked game from the user liked list in the database
+/**
+ * DELETE endpoint, remove a liked game from the user liked list in the database
+ * 
+ * @params object updateUserPreferences: object to find user and remove gameId from their liked games list
+ */
 app.delete("/deleteLikedGame", (response, request) => {
 
 })
 
-//delete a previously disliked game from the user liked list in the database
+/**
+ * DELETE endpoint, remove a disliked game from the user disliked list in the database
+ * 
+ * @params object updateUserPreferences: object to find user and remove gameId from their disliked games list
+ */
 app.delete("/deleteDislikedGame", (response, request) => {
 
 })
