@@ -5,20 +5,25 @@ const {
     response
 } = require('express')
 const {
-    request
-} = require('http')
-const {
-    platform
-} = require('os')
+    MongoClient,
+    ServerApiVersion,
+    ObjectId
+} = require('mongodb')
 
 const app = express()
-const port = process.env.PORT || 3000
-
 app.use(bodyParser.urlencoded({
     extended: true
 }))
 app.use(bodyParser.json())
 app.use(express.static('../docs'))
+
+const port = process.env.PORT || 3000
+const uri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@cluster0.ruiua.mongodb.net/?retryWrites=true&w=majority`;
+const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverApi: ServerApiVersion.v1
+});
 
 
 
@@ -58,8 +63,22 @@ app.listen(port, (error) => {
  *      password(str)
  * }
  * 
+ * 
+ * userDetails{
+ *      userId(str)
+ *      firstName(str),
+ *      lastName(str),
+ *      username(str),
+ *      email(str)
+ * }
+ * 
+ * loginWithId{
+ *      userId(str),
+ *      username(str)
+ * }
+ * 
  * updateUserPreferences{
- *      userId(int),
+ *      userId(str),
  *      gameId(int)
  * }
  * 
@@ -147,7 +166,66 @@ app.get("/getGameListFromFavorites", (request, response) => {
  * @params object newUser: object to compare against existing users and to create new user
  * @return object with result userId(int)
  */
-app.post("/createAccount", (request, response) => {
+app.post("/createAccount", async (request, response) => {
+    let newUser = request.body.newUser
+
+    // checks if all required fields are filled
+    if (!newUser.username || !newUser.password || !newUser.email || !newUser.firstname || !newUser.lastname) {
+        response.status(400).send("please fill everything in");
+        return
+    }
+
+    try {
+        // make connection to database and perfrom a check if the username and/or the email is already taken
+        await client.connect();
+        const data = client.db("courseProject").collection('users');
+        const checkUsername = await data.findOne({
+            username: newUser.username
+        });
+
+        const checkEmail = await data.findOne({
+            email: newUser.email
+        })
+        if (checkUsername) {
+            response.status(409).send({
+                error: "the username is already taken"
+            });
+            return
+        }
+        if (checkEmail) {
+            response.status(409).send({
+                error: "the Email is already taken"
+            });
+            return
+        }
+        //if username and email are not taken, the new account will be created and stored on the database
+        if (checkUsername == null && checkEmail == null) {
+            const newuser = {
+                "username": newUser.username,
+                "email": newUser.email,
+                "firstname": newUser.firstName,
+                "lastname": newUser.lastName,
+                "password": newUser.password,
+            };
+
+            let insertUser = await data.insertOne(newuser);
+            const userId = await data.distinct("_id", {
+                "username": newuser.username
+            })
+            //sends back the userId that was created so the user can stay logged in
+            response.status(200).send({
+                succes: "successfully created new useraccount",
+            });
+        }
+        // if there is any problem, the api will send the error back and also display it inside the console
+    } catch (error) {
+        console.log(error);
+        response.status(406).send(error.message);
+        // close the connection to the database
+    } finally {
+        await client.close();
+    }
+
 
 })
 
@@ -155,11 +233,130 @@ app.post("/createAccount", (request, response) => {
  * POST endpoint, check user login credentials and let them login
  * 
  * @params object loginCredentials: object to find and compare user credentials
- * @returns object with result userId(int)
+ * @returns object with result userDetails
  */
-app.post("/login", (request, response) => {
+app.post("/login", async (request, response) => {
 
+    let loginCredentials = request.body.loginCredentials
+    // check if the username and password fields are filled
+    if (!loginCredentials.username || !loginCredentials.password) {
+        response.status(401).send({
+            error: "please fill in all fields"
+        });
+        return
+    }
+    // makes connection to the database and searches the username inside the database
+    try {
+        await client.connect();
+        const userData = await client.db("courseProject").collection("users");
+        const checkUsername = await userData.findOne({
+            username: loginCredentials.username
+        });
+        // if the filled in username is not found, return a error with a message
+        if (checkUsername == null) {
+            console.log("username doesn't exist");
+            response.status(401).send({
+                error: "username or password is wrong"
+            });
+            return
+        } else {
+            const userPassword = await userData.findOne({
+                username: loginCredentials.username
+            });
+            console.log(userPassword);
+            // if both username and password are correct, return userId so that the user stays logged in
+            if (userPassword.password == loginCredentials.password) {
+                const userDetails = await userData.find({
+                    "username": loginCredentials.username
+                }).toArray()
+                response.status(200).send({
+                    succes: "successfully logged in",
+                    user: {
+                        "userId": userDetails[0]._id,
+                        "firstName": userDetails[0].firstName,
+                        "lastName": userDetails[0].lastName,
+                        "username": userDetails[0].username,
+                        "email": userDetails[0].email
+                    }
+
+                });
+                // if the password is wrong,  return a error with a message
+            } else {
+                response.status(401).send({
+                    error: 'username or password is wrong'
+                })
+            }
+
+        }
+        // if there is any problem, the api will send the error back and also display it inside the console
+    } catch (error) {
+        console.log(error);
+        response.status(406).send({
+            error
+        });
+        // close the connection to the database
+    } finally {
+        await client.close();
+    }
 })
+
+/**
+ * POST endpoint, function to login with userId 
+ * 
+ * @params object loginWithId: object to find and compare user credentials
+ * @returns object valid(bool): return if the logged in user exist
+ *  */
+app.post('/loginId', async (request, ressponse) => {
+
+    let loginWithId = request.body.loginWithId
+    // check if the username and password fields are filled
+    if (!loginWithId.username || !loginWithId.userId) {
+        response.status(401).send({
+            error: "no user Id provided"
+        });
+        return
+    }
+    // makes connection to the database and searches if the userId exists
+    try {
+        await client.connect();
+        const userData = await client.db("Courseproject").collection("user_data");
+        const userId = await userData.distinct("_id", {
+            "username": loginWithId.username
+        })
+        // if userId doesn't exist, return a error with a message
+        if (userId == null) {
+            console.log("userId isnt valid");
+            response.status(401).send({
+                error: "userId isnt valid",
+                Valid: false
+            });
+            return
+        } else {
+            // checks if userId in database is the same as the userId in the body
+            if (loginWithId.userId == userId) {
+                response.status(200).send({
+                    Valid: true
+                })
+            } else {
+                console.log("userId isnt valid");
+                response.status(401).send({
+                    error: "userId isnt valid",
+                    Valid: false
+                });
+            }
+        }
+        // if there is any problem, the api will send the error back and also display it inside the console
+    } catch (error) {
+        console.log(error);
+        response.status(406).send({
+            error
+        });
+        // close the connection to the database
+    } finally {
+        await client.close();
+    }
+})
+
 
 /**
  * POST endpoint, add a liked game to the user liked list in the database
