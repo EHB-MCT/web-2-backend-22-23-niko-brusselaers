@@ -1,3 +1,12 @@
+/**
+ * used sources:
+ * 
+ * 
+ * 
+ */
+
+
+
 require('dotenv').config({})
 const express = require("express")
 const bodyParser = require("body-parser")
@@ -15,7 +24,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 app.use(bodyParser.json())
-app.use(express.static('../docs'))
+app.use(express.static('./docs'))
 
 const port = process.env.PORT || 3000
 const uri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@cluster0.ruiua.mongodb.net/?retryWrites=true&w=majority`;
@@ -50,6 +59,12 @@ app.listen(port, (error) => {
  *      tag(arr(str))
  * }
  * 
+ * userPreferences{
+ *      userId(str),
+ *      gamePreferences(arr(game,
+ *                          gameIsLiked(bool)))
+ * }
+ * 
  * newUser{
  *      firstName(str),
  *      lastName(str),
@@ -79,16 +94,37 @@ app.listen(port, (error) => {
  * 
  * updateUserPreferences{
  *      userId(str),
- *      gameId(int)
+ *      gameId(int),
+ *      gameIsLiked(bool)
  * }
  * 
  * updateUserCredentials{
- *      userId(int),
+ *      userId(str),
  *      password(str),
  *      newPassword(str),
  *      newUsername(str),
  *      newEmail(str)
  * }
+ * 
+ * deleteUser{
+ *      username(str),
+ *      password(str)
+ * }
+ * 
+ * 
+ * platform/console id:
+ * 
+ * PC = 4
+ * Linux = 6
+ * Playstation 5 = 187
+ * Playstation 4 = 18
+ * Xbox one = 1
+ * Xbox series S/X = 186
+ * Nintendo Switch = 7
+ * IOS = 3
+ * macOS = 5
+ * Android = 21
+ *  
  * 
  * 
  */
@@ -99,7 +135,7 @@ app.listen(port, (error) => {
  * @returns html page with list of endpoints
  */
 app.get("/", (request, response) => {
-    response.status(300).redirect('index.html')
+    response.status(300).redirect("index.html")
 })
 
 
@@ -110,11 +146,13 @@ app.get("/", (request, response) => {
  */
 app.get("/getRandomGame", async (request, response) => {
 
-    let randomPage = Math.round(Math.random() * 80) //21250
-    let platform = '4,3,2,6'
-    let metacritic = "70,100"
+    let apiParameters = {
+        randomPage: Math.round(Math.random() * 92), //21250
+        platform: '4,6,187,18,1,186,7',
+        metacritic: "70,100"
+    }
     try {
-        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${randomPage}&page_size=39&platforms=${platform}&metacritic=${metacritic}`, {
+        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${apiParameters.randomPage}&page_size=39&platforms=${apiParameters.platform}&metacritic=${apiParameters.metacritic}`, {
                 method: "GET",
                 headers: {
                     'Content-Type': 'application/json'
@@ -147,13 +185,52 @@ app.get("/getRandomGame", async (request, response) => {
  * @returns object with result object game
  */
 app.get("/getGameByPreferences", (request, response) => {
+    let apiParameters = {
+        randomPage: Math.round(Math.random() * 70),
+        genres: request.body.genres || 'action, strategy, rpg, shooter, adventure, puzzle, racing, sports',
+        platform: request.body.platform || '4,6,187,18,1,186,7',
+        tag: request.body.tag || 'Singleplayer, Multiplayer, Co-op, Atmospheric, Full controller support',
+        metacritic: "70,100"
+    }
+    try {
+        fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${apiParameters.randomPage}&page_size=39&platforms=${apiParameters.platform}&metacritic=${apiParameters.metacritic}&platform=${apiParameters.platform}`, {
+                method: "GET",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                try {
+                    let randomGame = data.results[Math.round(Math.random() * 38)]
+                    console.log(randomGame);
+                    response.status(200).send({
+                        gameId: randomGame.id,
+                        name: randomGame.name,
+                        image: randomGame.background_image
+                    })
+                } catch (error) {
+                    console.log(error);
+                    response.status(500).send(
+                        message = error
+                    )
+                }
+
+            })
+    } catch (error) {
+        console.log(error);
+    } finally {
+
+    }
+
+
 
 })
 
 /**
  * GET endpoint, return a random game from the list of favorited games
  * 
- * @params object userId(int): reference id to find user inside database
+ * @params object userId(str): reference id to find user inside database
  * @returns object with result object game
  */
 app.get("/getGameListFromFavorites", (request, response) => {
@@ -161,10 +238,20 @@ app.get("/getGameListFromFavorites", (request, response) => {
 })
 
 /**
+ * GET endpoint, return list of liked and disliked games of user
+ * 
+ * @params object userId(str): reference id to find user inside database
+ * @returns object with result userPreferences
+ */
+app.get("/getUserPreferences", (request, response) => {
+
+})
+
+/**
  * POST endpoint, create a new user account and add it to the database
  * 
  * @params object newUser: object to compare against existing users and to create new user
- * @return object with result userId(int)
+ * @return object with userDetails
  */
 app.post("/createAccount", async (request, response) => {
     let newUser = request.body.newUser
@@ -304,7 +391,7 @@ app.post("/login", async (request, response) => {
  * POST endpoint, function to login with userId 
  * 
  * @params object loginWithId: object to find and compare user credentials
- * @returns object valid(bool): return if the logged in user exist
+ * @returns object isValid(bool): return if the logged in user exist
  *  */
 app.post('/loginId', async (request, ressponse) => {
 
@@ -359,58 +446,40 @@ app.post('/loginId', async (request, ressponse) => {
 
 
 /**
- * POST endpoint, add a liked game to the user liked list in the database
+ * POST endpoint, add game preference to user game preferences list in the database
  * 
- * @params object updateUserPreferences: object to find user and add gameId to their liked games list
+ * @params object updateUserPreferences: object to find user and add gameId to their gamePreferences list
  */
-app.post("/addLikedGame", (response, request) => {
+app.post("/addUserGamePreference", (response, request) => {
 
 })
 
-
-/**
- * POST endpoint, add a disliked game to the user disliked list in the database
- * 
- * @params object updateUserPreferences: object to find user and add gameId to their disliked games list
- */
-app.post("/addDislikedGame", (response, request) => {
-
-})
 
 /**
  * PUT endpoint, update user credentials in database
  * 
  * @params object updateUserCredentials: object to find and compare user details, aswell update them
- * @returns object userId(int)
+ * @returns object userId(str)
  */
 app.put("/updateAccount", (request, response) => {
 
 })
 
 /**
+ * POST endpoint, remove game preference from user game preferences list in the database
+ * 
+ * @params object updateUserPreferences: object to find user and remove gameId to their gamePreferences list
+ */
+app.post("/deleteUserGamePreference", (response, request) => {
+
+})
+
+/** 
  * DELETE endpoint, delete user account from database
- * 
- * @params object deleteUser: object to find and compare user details
- * @returns object userId(int)
+ *
+ * @params object deleteUser: object to find and compare user details *
+ * @returns object userId(int) *
  */
-app.delete("/deleteAccount", (request, response) => {
-
-})
-
-/**
- * DELETE endpoint, remove a liked game from the user liked list in the database
- * 
- * @params object updateUserPreferences: object to find user and remove gameId from their liked games list
- */
-app.delete("/deleteLikedGame", (response, request) => {
-
-})
-
-/**
- * DELETE endpoint, remove a disliked game from the user disliked list in the database
- * 
- * @params object updateUserPreferences: object to find user and remove gameId from their disliked games list
- */
-app.delete("/deleteDislikedGame", (response, request) => {
+app.delete("/deleteAccount", (response, request) => {
 
 })

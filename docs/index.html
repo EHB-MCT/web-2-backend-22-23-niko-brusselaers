@@ -1,12 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Documentation</title>
+    <title>Rest API endpoints</title>
 </head>
+
 <body>
-    
+    <main>
+        <ul>
+            <li>
+                <h1>
+                    GET:
+                </h1>
+                <ul>
+                    <li>
+                        <h2>/</h2>
+                        <p>return page with documentation of endpoints
+                        </p>
+                        <ul>
+                        </ul>
+                    </li>
+                    <li>
+                        <h2>/getRandomGame</h2>
+                        <p> return a random game
+                        </p>
+                    </li>
+                    <li>
+                        <h2>/getGameByPreferences</h2>
+                        <p> return a random game based on a couple of questions
+                        </p>
+                        <ul>
+                        </ul>
+                    </li>
+                    <li>
+                        <h2>/getGameListFromFavorites</h2>
+                        <p> return a random game from the list of favorited games
+                        </p>
+                        <ul>
+                        </ul>
+                    </li>
+                    <li>
+                        <h2>
+                            /getUserPreferences
+                        </h2>
+                        <p>return list of likes and disliked games of user</p>
+                        <ul>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <ul>
+            <li>
+                <h1>POST:</h1>
+                <ul>
+                    <li>
+                        <h2>
+                            /createAccount
+                        </h2>
+                        <p>create a new user account and add it to the database</p>
+                    </li>
+                    <li>
+                        <h2>
+                            /login
+                        </h2>
+                        <p>check user login credentials and let them login</p>
+                    </li>
+                    <li>
+                        <h2>
+                            /loginId
+                        </h2>
+                        <p>function to login with userId </p>
+                    </li>
+                    <li>
+                        <h2>
+                            /addUserGamePreference
+                        </h2>
+                        <p> add game preference to user game preferences list in the database</p>
+                    </li>
+
+                </ul>
+            </li>
+        </ul>
+
+        <ul>
+            <li>
+                <h1>PUT:</h1>
+                <ul>
+                    <li>
+                        <h2>
+                            /updateAccount
+                        </h2>
+                        <p>update user credentials in database</p>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <ul>
+            <li>
+                <h1>DELETE:</h1>
+                <ul>
+                    <li>
+                        <h2>
+                            /deleteAccount
+                        </h2>
+                        <p> delete user account from database</p>
+                    </li>
+                    <li>
+                        <h2>
+                            /deleteUserGamePreference
+                        </h2>
+                        <p>remove game preference from user game preferences list in the database</p>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        </ul>
+    </main>
 </body>
+
 </html>
