@@ -233,7 +233,45 @@ app.get("/getGameByPreferences", (request, response) => {
  * @params object userId(str): reference id to find user inside database
  * @returns object with result object game
  */
-app.get("/getGameListFromFavorites", (request, response) => {
+app.get("/getGameFromFavorites", async (request, response) => {
+    let userId = request.body.userId
+    if (!userId) {
+        response.status(400).send({
+            message: "userId is not defined"
+        })
+    } else {
+        try {
+            await client.connect();
+            const data = client.db("courseProject").collection("userPreferences")
+            const userData = await data.findOne({
+                userID: userId
+            })
+            const games = userData.games.filter((game) => game.isLiked == true)
+            let randomNumber = Math.round(Math.random() * games.length)
+            randomNumber = randomNumber == games.length ? randomNumber - 1 : randomNumber
+            fetch(`https://api.rawg.io/api/games/${games[randomNumber].gameId}?key=${process.env.RAWG_API_KEY}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    response.send({
+                        gameId: data.id,
+                        name: data.name,
+                        image: data.background_image
+                    })
+                })
+
+        } catch (error) {
+            console.log(error);
+            response.status(400).send({
+                error: error
+            })
+        }
+
+    }
 
 })
 
@@ -243,7 +281,32 @@ app.get("/getGameListFromFavorites", (request, response) => {
  * @params object userId(str): reference id to find user inside database
  * @returns object with result userPreferences
  */
-app.get("/getUserPreferences", (request, response) => {
+app.get("/getUserPreferences", async (request, response) => {
+    let userId = request.body.userId
+    if (!userId) {
+        response.status(400).send({
+            message: "userId is not defined"
+        })
+    } else {
+        try {
+            await client.connect();
+            const data = client.db("courseProject").collection("userPreferences")
+            console.log(userId);
+            const gameList = await data.findOne({
+                userID: userId
+            })
+            console.log(gameList);
+            response.status(200).send(gameList)
+
+            // TODO: make a fetch call foreach game in the list
+        } catch (error) {
+            console.log(error);
+            response.status(400).send({
+                error: error
+            })
+        }
+
+    }
 
 })
 
