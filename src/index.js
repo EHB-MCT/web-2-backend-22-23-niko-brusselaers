@@ -1,8 +1,9 @@
 /**
  * used sources:
  * 
- * 
- * 
+ *      - MongoDb documentation: https: //www.mongodb.com/docs/
+ *      - MongoDb remove object from array: https: //stackoverflow.com/questions/15641492/mongodb-remove-object-from-array
+ *      - RAWG api documentation: https: //api.rawg.io/docs/
  */
 
 
@@ -95,7 +96,7 @@ app.listen(port, (error) => {
  * updateUserPreferences{
  *      userId(str),
  *      gameId(int),
- *      gameIsLiked(bool)
+ *      IsLiked(bool)
  * }
  * 
  * updateUserCredentials{
@@ -152,6 +153,7 @@ app.get("/getRandomGame", async (request, response) => {
         metacritic: "70,100"
     }
     try {
+        //fetching a list of games from the api
         fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${apiParameters.randomPage}&page_size=39&platforms=${apiParameters.platform}&metacritic=${apiParameters.metacritic}`, {
                 method: "GET",
                 headers: {
@@ -160,7 +162,7 @@ app.get("/getRandomGame", async (request, response) => {
             })
             .then(response => response.json())
             .then(data => {
-
+                //generating a random number to pick a random game and sending the selected game back in the response
                 let randomGame = data.results[Math.round(Math.random() * 38)]
                 console.log(randomGame);
                 response.status(200).send({
@@ -185,6 +187,7 @@ app.get("/getRandomGame", async (request, response) => {
  * @returns object with result object game
  */
 app.get("/getGameByPreferences", (request, response) => {
+    // check if all required data is present in request and if somthing is not present, replace it with default values
     let apiParameters = {
         randomPage: Math.round(Math.random() * 70),
         genres: request.body.genres || 'action, strategy, rpg, shooter, adventure, puzzle, racing, sports',
@@ -193,6 +196,7 @@ app.get("/getGameByPreferences", (request, response) => {
         metacritic: "70,100"
     }
     try {
+        //fetching a list of games from the api
         fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${apiParameters.randomPage}&page_size=39&platforms=${apiParameters.platform}&metacritic=${apiParameters.metacritic}&platform=${apiParameters.platform}`, {
                 method: "GET",
                 headers: {
@@ -202,6 +206,8 @@ app.get("/getGameByPreferences", (request, response) => {
             .then(response => response.json())
             .then(data => {
                 try {
+                    //generating a random number to pick a random game and sending the selected game back in the response
+
                     let randomGame = data.results[Math.round(Math.random() * 38)]
                     console.log(randomGame);
                     response.status(200).send({
@@ -219,8 +225,6 @@ app.get("/getGameByPreferences", (request, response) => {
             })
     } catch (error) {
         console.log(error);
-    } finally {
-
     }
 
 
@@ -235,20 +239,24 @@ app.get("/getGameByPreferences", (request, response) => {
  */
 app.get("/getGameFromFavorites", async (request, response) => {
     let userId = request.body.userId
+    // check if all required data is present in request
     if (!userId) {
         response.status(400).send({
             message: "userId is not defined"
         })
     } else {
         try {
+            // retrieving list of user game preferences 
             await client.connect();
             const data = client.db("courseProject").collection("userPreferences")
             const userData = await data.findOne({
                 userID: userId
             })
+            // making a new list with all the games that are liked and then selecting a random game
             const games = userData.games.filter((game) => game.isLiked == true)
             let randomNumber = Math.round(Math.random() * games.length)
             randomNumber = randomNumber == games.length ? randomNumber - 1 : randomNumber
+            //fetching the selected game from the api
             fetch(`https://api.rawg.io/api/games/${games[randomNumber].gameId}?key=${process.env.RAWG_API_KEY}`, {
                     method: "GET",
                     headers: {
@@ -257,6 +265,7 @@ app.get("/getGameFromFavorites", async (request, response) => {
                 })
                 .then(response => response.json())
                 .then(data => {
+                    //sending selected game back with response
                     response.send({
                         gameId: data.id,
                         name: data.name,
@@ -269,6 +278,8 @@ app.get("/getGameFromFavorites", async (request, response) => {
             response.status(400).send({
                 error: error
             })
+        } finally {
+            await client.close();
         }
 
     }
@@ -283,6 +294,7 @@ app.get("/getGameFromFavorites", async (request, response) => {
  */
 app.get("/getUserPreferences", async (request, response) => {
     let userId = request.body.userId
+    // check if all required data is present in request
     if (!userId) {
         response.status(400).send({
             message: "userId is not defined"
@@ -319,7 +331,7 @@ app.get("/getUserPreferences", async (request, response) => {
 app.post("/createAccount", async (request, response) => {
     let newUser = request.body.newUser
 
-    // checks if all required fields are filled
+    // check if all required data is present in request
     if (!newUser.username || !newUser.password || !newUser.email || !newUser.firstname || !newUser.lastname) {
         response.status(400).send("please fill everything in");
         return
@@ -388,7 +400,7 @@ app.post("/createAccount", async (request, response) => {
 app.post("/login", async (request, response) => {
 
     let loginCredentials = request.body.loginCredentials
-    // check if the username and password fields are filled
+    // check if all required data is present in request
     if (!loginCredentials.username || !loginCredentials.password) {
         response.status(401).send({
             error: "please fill in all fields"
@@ -456,10 +468,10 @@ app.post("/login", async (request, response) => {
  * @params object loginWithId: object to find and compare user credentials
  * @returns object isValid(bool): return if the logged in user exist
  *  */
-app.post('/loginId', async (request, ressponse) => {
+app.post('/loginId', async (request, response) => {
 
     let loginWithId = request.body.loginWithId
-    // check if the username and password fields are filled
+    // check if all required data is present in request
     if (!loginWithId.username || !loginWithId.userId) {
         response.status(401).send({
             error: "no user Id provided"
@@ -513,7 +525,55 @@ app.post('/loginId', async (request, ressponse) => {
  * 
  * @params object updateUserPreferences: object to find user and add gameId to their gamePreferences list
  */
-app.post("/addUserGamePreference", (response, request) => {
+app.post("/updateUserGamePreference", async (request, response) => {
+    let updateUserPreferences = request.body.updateUserPreferences
+    // check if all required data is present in request
+    if (!updateUserPreferences.userId || !updateUserPreferences.gameId || updateUserPreferences.isLiked == undefined) {
+        response.status(400).send({
+            error: "missing data in request"
+        })
+    } else {
+        try {
+            //checking if the game is already an object in the array of games of user 
+            await client.connect();
+            const data = client.db("courseProject").collection("userPreferences")
+            let userData = await data.findOne({
+                userID: updateUserPreferences.userId,
+                'games.gameId': updateUserPreferences.gameId
+            })
+            // if the game is already there, remove it from the list
+            if (userData != null) {
+                userData = await data.findOneAndUpdate({
+                    userID: updateUserPreferences.userId,
+                    'games.gameId': updateUserPreferences.gameId
+                }, {
+                    $pull: {
+                        'games': {
+                            "gameId": updateUserPreferences.gameId
+                        }
+                    }
+                })
+            }
+            // inserting a new object into games array with gameId and isLiked
+            userData = await data.findOneAndUpdate({
+                userID: updateUserPreferences.userId
+            }, {
+                $push: {
+                    'games': {
+                        'gameId': updateUserPreferences.gameId,
+                        'isLiked': updateUserPreferences.isLiked
+                    }
+                }
+            }, {
+                upsert: true
+            })
+
+        } catch (error) {
+            console.log(error);
+        } finally {
+            await client.close();
+        }
+    }
 
 })
 
