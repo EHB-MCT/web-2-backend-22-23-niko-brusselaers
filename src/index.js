@@ -293,6 +293,7 @@ app.get("/getGameFromFavorites", async (request, response) => {
  * @returns object with result userPreferences
  */
 app.get("/getUserPreferences", async (request, response) => {
+
     let userId = request.body.userId
     // check if all required data is present in request
     if (!userId) {
@@ -300,23 +301,39 @@ app.get("/getUserPreferences", async (request, response) => {
             message: "userId is not defined"
         })
     } else {
+
         try {
+            // retrieve data from userPreferences collection in database
             await client.connect();
             const data = client.db("courseProject").collection("userPreferences")
-            console.log(userId);
-            const gameList = await data.findOne({
+            const UserGamePreferences = await data.findOne({
                 userID: userId
             })
-            console.log(gameList);
-            response.status(200).send(gameList)
+            // looping over all games inside array and fetching game data from rawg api
+            for (let i = 0; i < UserGamePreferences.games.length; i++) {
+                await fetch(`https://api.rawg.io/api/games/${UserGamePreferences.games[i].gameId}?key=890f8b1ca0e745639c6f586b8c849c90`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // adding game name and image to object inside games array
+                        UserGamePreferences.games[i] = {
+                            gameId: data.id,
+                            name: data.name,
+                            image: data.background_image,
+                            isLiked: UserGamePreferences.games[i].isLiked
+                        }
 
-            // TODO: make a fetch call foreach game in the list
+                    })
+
+            }
+            //sending back useGamePrefences in response
+            response.status(200).send(UserGamePreferences)
         } catch (error) {
             console.log(error);
             response.status(400).send({
                 error: error
             })
         }
+
 
     }
 
@@ -585,7 +602,7 @@ app.post("/updateUserGamePreference", async (request, response) => {
  * @returns object userId(str)
  */
 app.put("/updateAccount", (request, response) => {
-
+    
 })
 
 /**
