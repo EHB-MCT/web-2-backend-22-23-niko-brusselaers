@@ -108,7 +108,7 @@ app.listen(port, (error) => {
  * }
  * 
  * deleteUser{
- *      username(str),
+ *      userId(str),
  *      password(str)
  * }
  * 
@@ -173,6 +173,9 @@ app.get("/getRandomGame", async (request, response) => {
             })
     } catch (error) {
         console.log(error);
+        response.status(500).send({
+            error: error.message
+        })
     } finally {
 
     }
@@ -217,9 +220,9 @@ app.get("/getGameByPreferences", (request, response) => {
                     })
                 } catch (error) {
                     console.log(error);
-                    response.status(500).send(
-                        message = error
-                    )
+                    response.status(500).send({
+                        error: error.message
+                    })
                 }
 
             })
@@ -256,27 +259,34 @@ app.get("/getGameFromFavorites", async (request, response) => {
             const games = userData.games.filter((game) => game.isLiked == true)
             let randomNumber = Math.round(Math.random() * games.length)
             randomNumber = randomNumber == games.length ? randomNumber - 1 : randomNumber
-            //fetching the selected game from the api
-            fetch(`https://api.rawg.io/api/games/${games[randomNumber].gameId}?key=${process.env.RAWG_API_KEY}`, {
-                    method: "GET",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+            //if the user has no liked games, send error message in response
+            if (games.length == 0) {
+                response.status(400).send({
+                    error: "you have no games liked"
                 })
-                .then(response => response.json())
-                .then(data => {
-                    //sending selected game back with response
-                    response.send({
-                        gameId: data.id,
-                        name: data.name,
-                        image: data.background_image
+            } else {
+                //fetching the selected game from the api
+                fetch(`https://api.rawg.io/api/games/${games[randomNumber].gameId}?key=${process.env.RAWG_API_KEY}`, {
+                        method: "GET",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
                     })
-                })
+                    .then(response => response.json())
+                    .then(data => {
+                        //sending selected game back with response
+                        response.send({
+                            gameId: data.id,
+                            name: data.name,
+                            image: data.background_image
+                        })
+                    })
+            }
 
         } catch (error) {
             console.log(error);
-            response.status(400).send({
-                error: error
+            response.status(500).send({
+                error: error.message
             })
         } finally {
             await client.close();
@@ -329,9 +339,11 @@ app.get("/getUserPreferences", async (request, response) => {
             response.status(200).send(UserGamePreferences)
         } catch (error) {
             console.log(error);
-            response.status(400).send({
-                error: error
+            response.status(500).send({
+                error: error.message
             })
+        } finally {
+            await client.close();
         }
 
 
@@ -349,7 +361,7 @@ app.post("/createAccount", async (request, response) => {
     let newUser = request.body.newUser
 
     // check if all required data is present in request
-    if (!newUser.username || !newUser.password || !newUser.email || !newUser.firstname || !newUser.lastname) {
+    if (!newUser.username || !newUser.password || !newUser.email || !newUser.firstName || !newUser.lastName) {
         response.status(400).send("please fill everything in");
         return
     }
@@ -399,7 +411,9 @@ app.post("/createAccount", async (request, response) => {
         // if there is any problem, the api will send the error back and also display it inside the console
     } catch (error) {
         console.log(error);
-        response.status(406).send(error.message);
+        response.status(500).send({
+            error: error.message
+        })
         // close the connection to the database
     } finally {
         await client.close();
@@ -470,9 +484,9 @@ app.post("/login", async (request, response) => {
         // if there is any problem, the api will send the error back and also display it inside the console
     } catch (error) {
         console.log(error);
-        response.status(406).send({
-            error
-        });
+        response.status(500).send({
+            error: error.message
+        })
         // close the connection to the database
     } finally {
         await client.close();
@@ -488,6 +502,7 @@ app.post("/login", async (request, response) => {
 app.post('/loginId', async (request, response) => {
 
     let loginWithId = request.body.loginWithId
+    console.log(loginWithId);
     // check if all required data is present in request
     if (!loginWithId.username || !loginWithId.userId) {
         response.status(401).send({
@@ -498,38 +513,28 @@ app.post('/loginId', async (request, response) => {
     // makes connection to the database and searches if the userId exists
     try {
         await client.connect();
-        const userData = await client.db("Courseproject").collection("users");
-        const userId = await userData.distinct("_id", {
+        const data = await client.db("courseProject").collection("users");
+        const user = await data.findOne({
+            "_id": ObjectId(loginWithId.userId),
             "username": loginWithId.username
         })
-        // if userId doesn't exist, return a error with a message
-        if (userId == null) {
-            console.log("userId isnt valid");
-            response.status(401).send({
-                error: "userId isnt valid",
-                Valid: false
-            });
-            return
+        // if userId doesn't exist or username is not linked to given userId, return a error with a message
+        if (user != null) {
+            response.status(200).send({
+                message: "user is valid",
+                isValid: true
+            })
         } else {
-            // checks if userId in database is the same as the userId in the body
-            if (loginWithId.userId == userId) {
-                response.status(200).send({
-                    Valid: true
-                })
-            } else {
-                console.log("userId isnt valid");
-                response.status(401).send({
-                    error: "userId isnt valid",
-                    Valid: false
-                });
-            }
+            response.status(200).send({
+                message: "user isn't valid",
+                isValid: false
+            })
         }
-        // if there is any problem, the api will send the error back and also display it inside the console
     } catch (error) {
         console.log(error);
-        response.status(406).send({
-            error
-        });
+        response.status(500).send({
+            error: error.message
+        })
         // close the connection to the database
     } finally {
         await client.close();
@@ -542,7 +547,7 @@ app.post('/loginId', async (request, response) => {
  * 
  * @params object updateUserPreferences: object to find user and add gameId to their gamePreferences list
  */
-app.post("/updateUserGamePreference", async (request, response) => {
+app.put("/updateUserGamePreference", async (request, response) => {
     let updateUserPreferences = request.body.updateUserPreferences
     // check if all required data is present in request
     if (!updateUserPreferences.userId || !updateUserPreferences.gameId || updateUserPreferences.isLiked == undefined) {
@@ -584,9 +589,14 @@ app.post("/updateUserGamePreference", async (request, response) => {
             }, {
                 upsert: true
             })
-
+            response.status(200).send({
+                message: 'ok'
+            })
         } catch (error) {
             console.log(error);
+            response.status(500).send({
+                error: error.message
+            })
         } finally {
             await client.close();
         }
@@ -683,7 +693,11 @@ app.put("/updateAccount", async (request, response) => {
 
         } catch (error) {
             console.log(error);
-            // response.send(404).send(error)
+            response.send(500).send({
+                error: error.message
+            })
+        } finally {
+            await client.close();
         }
 
     }
@@ -695,7 +709,47 @@ app.put("/updateAccount", async (request, response) => {
  * 
  * @params object updateUserPreferences: object to find user and remove gameId to their gamePreferences list
  */
-app.post("/deleteUserGamePreference", (response, request) => {
+app.delete("/deleteUserGamePreference", async (request, response) => {
+    let updateUserPreferences = request.body.updateUserPreferences
+
+    try {
+        await client.connect();
+        const data = client.db("courseProject").collection("userPreferences")
+        let userData = await data.findOne({
+            userID: updateUserPreferences.userId,
+            'games.gameId': updateUserPreferences.gameId
+        })
+        // if the game is inside array, remove it from array
+        if (userData != null) {
+            userData = await data.findOneAndUpdate({
+                userID: updateUserPreferences.userId,
+                'games.gameId': updateUserPreferences.gameId
+            }, {
+                $pull: {
+                    'games': {
+                        "gameId": updateUserPreferences.gameId
+                    }
+                }
+            })
+            //if the game is succesfully removed, send response 200 and message "ok"
+            response.status(200).send({
+                message: "ok"
+            })
+        } else {
+            // if the game or userId can't be found, send error response 400
+            response.status(400).send({
+                error: "user or game not found"
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        response.status(500).send({
+            error: error.message
+        })
+    } finally {
+        await client.close();
+    }
+
 
 })
 
@@ -705,6 +759,43 @@ app.post("/deleteUserGamePreference", (response, request) => {
  * @params object deleteUser: object to find and compare user details *
  * @returns object userId(int) *
  */
-app.delete("/deleteAccount", (response, request) => {
+app.delete("/deleteUser", async (request, response) => {
+    let deleteUser = request.body.deleteUser
+
+    /**
+     * deleteUser {
+         * userId(str),
+             * password(str) *
+     }
+     */
+    try {
+        //find user data inside user collection
+        await client.connect();
+        const data = client.db("courseProject").collection("users")
+        const userData = await data.findOne({
+            "_id": ObjectId(deleteUser.userId)
+        })
+        //if the user exist and the password is correct, delete user and return response 200 with message "ok"
+        if (userData != null && userData.password == deleteUser.password) {
+            await data.deleteOne({
+                '_id': ObjectId(deleteUser.userId)
+            })
+            response.status(200).send({
+                message: "ok"
+            })
+            //if user is not found or password is incorect, return error message with response
+        } else {
+            response.status(400).send({
+                error: "userId not found or password incorrrect"
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        response.status(500).send({
+            error: error.message
+        })
+    } finally {
+        await client.close();
+    }
 
 })
