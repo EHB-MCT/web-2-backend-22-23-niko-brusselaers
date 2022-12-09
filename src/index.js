@@ -4,6 +4,7 @@
  *      - MongoDb documentation: https: //www.mongodb.com/docs/
  *      - MongoDb remove object from array: https: //stackoverflow.com/questions/15641492/mongodb-remove-object-from-array
  *      - RAWG api documentation: https: //api.rawg.io/docs/
+ *      - switch statement javscript: https: //www.w3schools.com/js/js_switch.asp
  */
 
 
@@ -102,9 +103,8 @@ app.listen(port, (error) => {
  * updateUserCredentials{
  *      userId(str),
  *      password(str),
- *      newPassword(str),
- *      newUsername(str),
- *      newEmail(str)
+ *      type(str),
+ *      newCredential(str)
  * }
  * 
  * deleteUser{
@@ -498,7 +498,7 @@ app.post('/loginId', async (request, response) => {
     // makes connection to the database and searches if the userId exists
     try {
         await client.connect();
-        const userData = await client.db("Courseproject").collection("user_data");
+        const userData = await client.db("Courseproject").collection("users");
         const userId = await userData.distinct("_id", {
             "username": loginWithId.username
         })
@@ -601,8 +601,93 @@ app.post("/updateUserGamePreference", async (request, response) => {
  * @params object updateUserCredentials: object to find and compare user details, aswell update them
  * @returns object userId(str)
  */
-app.put("/updateAccount", (request, response) => {
-    
+app.put("/updateAccount", async (request, response) => {
+    let updateUserCredentials = request.body.updateUserCredentials
+
+    if (!updateUserCredentials.userId || !updateUserCredentials.password) {
+        response.status(400).send({
+            error: "missing userId or password"
+        });
+    } else {
+        try {
+            // fetch user data from user collection inside database
+            await client.connect();
+            const db = await client.db("courseProject").collection("users");
+            const userData = await db.findOne({
+                "_id": ObjectId(updateUserCredentials.userId)
+            })
+            // if password is incorrect send error response back
+            if (userData.password != updateUserCredentials.password) {
+                response.status(401).send({
+                    error: "password is not correct"
+                })
+            } else {
+
+                switch (updateUserCredentials.type) {
+                    // if type = password, update user password in database
+                    case "password":
+                        await db.findOneAndUpdate({
+                            '_id': ObjectId(updateUserCredentials.userId)
+                        }, {
+                            $set: {
+                                password: updateUserCredentials.newCredential
+
+                            }
+                        })
+                        response.send(200).send({
+                            message: "ok"
+                        })
+                        break
+                        // if type = email, update user email in database
+                    case "email":
+
+                        await db.findOneAndUpdate({
+                            '_id': ObjectId(updateUserCredentials.userId)
+                        }, {
+                            $set: {
+                                email: updateUserCredentials.newCredential
+
+                            }
+                        })
+                        response.send(200).send({
+                            message: "ok"
+                        })
+                        break
+                        // if type = username, update user username in database
+                    case "username":
+
+                        await db.findOneAndUpdate({
+                            '_id': ObjectId(updateUserCredentials.userId)
+                        }, {
+                            $set: {
+                                username: updateUserCredentials.newCredential
+
+                            }
+                        })
+                        response.send(200).send({
+                            message: "ok"
+                        })
+
+                        break
+                    default:
+                        // if type was definded or not properly, send error response back
+                        response.status(400).send({
+                            error: "the update type was not correctly specified, please choose out of following: password, email, username"
+                        })
+                        break
+                }
+            }
+
+
+
+
+        } catch (error) {
+            console.log(error);
+            // response.send(404).send(error)
+        }
+
+    }
+
 })
 
 /**
