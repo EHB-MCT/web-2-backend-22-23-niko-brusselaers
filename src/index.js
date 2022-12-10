@@ -7,8 +7,9 @@
  *      - switch statement javscript: https: //www.w3schools.com/js/js_switch.asp
  */
 
-import fetch from "node-fetch";
-
+const fetch = (url) => import('node-fetch').then(({
+    default: fetch
+}) => fetch(url));
 require('dotenv').config({})
 const express = require("express")
 const bodyParser = require("body-parser")
