@@ -7,7 +7,7 @@
  *      - switch statement javscript: https: //www.w3schools.com/js/js_switch.asp
  */
 
-
+import fetch from "node-fetch";
 
 require('dotenv').config({})
 const express = require("express")
