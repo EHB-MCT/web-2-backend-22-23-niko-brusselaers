@@ -359,55 +359,58 @@ app.get("/getUserPreferences", async (request, response) => {
  * @return object with userDetails
  */
 app.post("/createAccount", async (request, response) => {
+    console.log(request.body);
     let newUser = request.body.newUser
 
     // check if all required data is present in request
-    if (!newUser.username || !newUser.password || !newUser.email || !newUser.firstName || !newUser.lastName) {
-        response.status(400).send("please fill everything in");
-        return
-    }
+
 
     try {
-        // make connection to database and perfrom a check if the username and/or the email is already taken
-        await client.connect();
-        const data = client.db("courseProject").collection('users');
-        const checkUsername = await data.findOne({
-            username: newUser.username
-        });
-
-        const checkEmail = await data.findOne({
-            email: newUser.email
-        })
-        if (checkUsername) {
-            response.status(409).send({
-                error: "the username is already taken"
-            });
+        if (!newUser.username || !newUser.password || !newUser.email || !newUser.firstname || !newUser.lastname) {
+            response.status(400).send("please fill everything in");
             return
-        }
-        if (checkEmail) {
-            response.status(409).send({
-                error: "the Email is already taken"
+        } else {
+            // make connection to database and perfrom a check if the username and/or the email is already taken
+            await client.connect();
+            const data = client.db("courseProject").collection('users');
+            const checkUsername = await data.findOne({
+                username: newUser.username
             });
-            return
-        }
-        //if username and email are not taken, the new account will be created and stored on the database
-        if (checkUsername == null && checkEmail == null) {
-            const newuser = {
-                "username": newUser.username,
-                "email": newUser.email,
-                "firstname": newUser.firstName,
-                "lastname": newUser.lastName,
-                "password": newUser.password,
-            };
 
-            let insertUser = await data.insertOne(newuser);
-            const userId = await data.distinct("_id", {
-                "username": newuser.username
+            const checkEmail = await data.findOne({
+                email: newUser.email
             })
-            //sends back the userId that was created so the user can stay logged in
-            response.status(200).send({
-                succes: "successfully created new useraccount",
-            });
+            if (checkUsername) {
+                response.status(409).send({
+                    error: "the username is already taken"
+                });
+                return
+            }
+            if (checkEmail) {
+                response.status(409).send({
+                    error: "the Email is already taken"
+                });
+                return
+            }
+            //if username and email are not taken, the new account will be created and stored on the database
+            if (checkUsername == null && checkEmail == null) {
+                const newuser = {
+                    "username": newUser.username,
+                    "email": newUser.email,
+                    "firstname": newUser.firstname,
+                    "lastname": newUser.lastname,
+                    "password": newUser.password,
+                };
+
+                let insertUser = await data.insertOne(newuser);
+                const userId = await data.distinct("_id", {
+                    "username": newuser.username
+                })
+                //sends back the userId that was created so the user can stay logged in
+                response.status(200).send({
+                    succes: "successfully created new useraccount",
+                });
+            }
         }
         // if there is any problem, the api will send the error back and also display it inside the console
     } catch (error) {
@@ -467,10 +470,7 @@ app.post("/login", async (request, response) => {
                     succes: "successfully logged in",
                     user: {
                         "userId": userDetails[0]._id,
-                        "firstName": userDetails[0].firstName,
-                        "lastName": userDetails[0].lastName,
-                        "username": userDetails[0].username,
-                        "email": userDetails[0].email
+                        "username": userDetails[0].username
                     }
 
                 });
