@@ -1,6 +1,6 @@
 /**
  * used sources:
- * 
+ *      - WEB II backend niko brusselaers: https: //github.com/EHB-MCT/web2-backend-niko-brusselaers
  *      - MongoDb documentation: https: //www.mongodb.com/docs/
  *      - MongoDb remove object from array: https: //stackoverflow.com/questions/15641492/mongodb-remove-object-from-array
  *      - RAWG api documentation: https: //api.rawg.io/docs/
@@ -526,7 +526,7 @@ app.post('/loginId', async (request, response) => {
                 isValid: true
             })
         } else {
-            response.status(200).send({
+            response.status(401).send({
                 message: "user isn't valid",
                 isValid: false
             })
