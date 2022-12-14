@@ -356,8 +356,9 @@ app.get("/getUserPreferences", async (request, response) => {
  * @params object loginWithId: object to find and compare user credentials
  * @returns object isValid(bool): return if the logged in user exist
  *  */
-app.get('/getUserData', async (request, response) => {
+app.post('/getUserData', async (request, response) => {
     let loginWithId = request.body.loginWithId
+    console.log(request.body);
     // check if all required data is present in request
     if (!loginWithId.username || !loginWithId.userId) {
         response.status(401).send({
