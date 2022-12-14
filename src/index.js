@@ -353,6 +353,59 @@ app.get("/getUserPreferences", async (request, response) => {
 })
 
 /**
+ * GET endpoint, function to get user credentials 
+ * 
+ * @params object loginWithId: object to find and compare user credentials
+ * @returns object isValid(bool): return if the logged in user exist
+ *  */
+app.get('/getUserData', async (request, response) => {
+    console.log("test");
+    let loginWithId = request.body.loginWithId
+    console.log(loginWithId);
+    // check if all required data is present in request
+    if (!loginWithId.username || !loginWithId.userId) {
+        response.status(401).send({
+            error: "no user Id provided"
+        });
+        return
+    }
+    // makes connection to the database and searches if the userId exists
+    try {
+        await client.connect();
+        const data = await client.db("courseProject").collection("users");
+        const user = await data.findOne({
+            "_id": ObjectId(loginWithId.userId),
+            "username": loginWithId.username
+        })
+        // if userId doesn't exist or username is not linked to given userId, return a error with a message
+        if (user != null) {
+            console.log(user);
+            response.status(200).send({
+                userData: {
+                    username: user.username,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    email: user.email
+                }
+            })
+        } else {
+            response.status(401).send({
+                message: "user isn't valid"
+            })
+        }
+    } catch (error) {
+        console.log(error);
+        response.status(500).send({
+            error: error.message
+        })
+        // close the connection to the database
+    } finally {
+        await client.close();
+    }
+})
+
+
+/**
  * POST endpoint, create a new user account and add it to the database
  * 
  * @params object newUser: object to compare against existing users and to create new user
