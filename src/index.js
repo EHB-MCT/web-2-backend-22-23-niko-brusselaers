@@ -165,7 +165,6 @@ app.get("/getRandomGame", async (request, response) => {
             .then(data => {
                 //generating a random number to pick a random game and sending the selected game back in the response
                 let randomGame = data.results[Math.round(Math.random() * 38)]
-                console.log(randomGame);
                 response.status(200).send({
                     gameId: randomGame.id,
                     name: randomGame.name,
@@ -213,7 +212,6 @@ app.get("/getGameByPreferences", (request, response) => {
                     //generating a random number to pick a random game and sending the selected game back in the response
 
                     let randomGame = data.results[Math.round(Math.random() * 38)]
-                    console.log(randomGame);
                     response.status(200).send({
                         gameId: randomGame.id,
                         name: randomGame.name,
@@ -359,9 +357,7 @@ app.get("/getUserPreferences", async (request, response) => {
  * @returns object isValid(bool): return if the logged in user exist
  *  */
 app.get('/getUserData', async (request, response) => {
-    console.log("test");
     let loginWithId = request.body.loginWithId
-    console.log(loginWithId);
     // check if all required data is present in request
     if (!loginWithId.username || !loginWithId.userId) {
         response.status(401).send({
@@ -379,7 +375,6 @@ app.get('/getUserData', async (request, response) => {
         })
         // if userId doesn't exist or username is not linked to given userId, return a error with a message
         if (user != null) {
-            console.log(user);
             response.status(200).send({
                 userData: {
                     username: user.username,
@@ -412,7 +407,6 @@ app.get('/getUserData', async (request, response) => {
  * @return object with userDetails
  */
 app.post("/createAccount", async (request, response) => {
-    console.log(request.body);
     let newUser = request.body.newUser
 
     // check if all required data is present in request
@@ -504,7 +498,6 @@ app.post("/login", async (request, response) => {
         });
         // if the filled in username is not found, return a error with a message
         if (checkUsername == null) {
-            console.log("username doesn't exist");
             response.status(401).send({
                 error: "username or password is wrong"
             });
@@ -513,7 +506,6 @@ app.post("/login", async (request, response) => {
             const userPassword = await userData.findOne({
                 username: loginCredentials.username
             });
-            console.log(userPassword);
             // if both username and password are correct, return userId so that the user stays logged in
             if (userPassword.password == loginCredentials.password) {
                 const userDetails = await userData.find({
@@ -556,7 +548,6 @@ app.post("/login", async (request, response) => {
 app.post('/loginId', async (request, response) => {
 
     let loginWithId = request.body.loginWithId
-    console.log(loginWithId);
     // check if all required data is present in request
     if (!loginWithId.username || !loginWithId.userId) {
         response.status(401).send({
