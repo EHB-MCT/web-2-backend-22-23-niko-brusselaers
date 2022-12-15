@@ -181,7 +181,7 @@ app.get("/getRandomGame", async (request, response) => {
  * @params object gamePreferences: parameters to filter by
  * @returns object with result object game
  */
-app.get("/getGameByPreferences", (request, response) => {
+app.post("/getGameByPreferences", (request, response) => {
     // check if all required data is present in request and if somthing is not present, replace it with default values
     let apiParameters = {
         randomPage: Math.round(Math.random() * 70),
@@ -231,7 +231,7 @@ app.get("/getGameByPreferences", (request, response) => {
  * @params object userId(str): reference id to find user inside database
  * @returns object with result object game
  */
-app.get("/getGameFromFavorites", async (request, response) => {
+app.post("/getGameFromFavorites", async (request, response) => {
     let userId = request.body.userId
     // check if all required data is present in request
     if (!userId) {
