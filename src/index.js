@@ -287,9 +287,7 @@ app.get("/getGameFromFavorites", async (request, response) => {
             response.status(500).send({
                 error: error.message
             })
-        } finally {
-            await client.close();
-        }
+        } 
 
     }
 
@@ -341,9 +339,7 @@ app.post("/getUserPreferences", async (request, response) => {
             response.status(500).send({
                 error: error.message
             })
-        } finally {
-            await client.close();
-        }
+        } 
 
 
     }
@@ -395,9 +391,7 @@ app.post('/getUserData', async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } finally {
-        await client.close();
-    }
+    } 
 })
 
 
@@ -467,9 +461,7 @@ app.post("/createAccount", async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } finally {
-        await client.close();
-    }
+    } 
 
 
 })
@@ -535,9 +527,7 @@ app.post("/login", async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } finally {
-        await client.close();
-    }
+    } 
 })
 
 /**
@@ -582,9 +572,7 @@ app.post('/loginId', async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } finally {
-        await client.close();
-    }
+    } 
 })
 
 
@@ -643,9 +631,7 @@ app.put("/updateUserGamePreference", async (request, response) => {
             response.status(500).send({
                 error: error.message
             })
-        } finally {
-            await client.close();
-        }
+        } 
     }
 
 })
@@ -742,9 +728,7 @@ app.put("/updateAccount", async (request, response) => {
             response.send(500).send({
                 error: error.message
             })
-        } finally {
-            await client.close();
-        }
+        } 
 
     }
 
@@ -792,9 +776,7 @@ app.delete("/deleteUserGamePreference", async (request, response) => {
         response.status(500).send({
             error: error.message
         })
-    } finally {
-        await client.close();
-    }
+    } 
 
 
 })
@@ -840,8 +822,6 @@ app.delete("/deleteUser", async (request, response) => {
         response.status(500).send({
             error: error.message
         })
-    } finally {
-        await client.close();
-    }
+    } 
 
 })
