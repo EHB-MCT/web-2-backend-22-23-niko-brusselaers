@@ -296,12 +296,12 @@ app.get("/getGameFromFavorites", async (request, response) => {
 })
 
 /**
- * GET endpoint, return list of liked and disliked games of user
+ * POST endpoint, return list of liked and disliked games of user
  * 
  * @params object userId(str): reference id to find user inside database
  * @returns object with result userPreferences
  */
-app.get("/getUserPreferences", async (request, response) => {
+app.post("/getUserPreferences", async (request, response) => {
 
     let userId = request.body.userId
     // check if all required data is present in request
@@ -351,7 +351,7 @@ app.get("/getUserPreferences", async (request, response) => {
 })
 
 /**
- * GET endpoint, function to get user credentials 
+ * POST endpoint, function to get user credentials 
  * 
  * @params object loginWithId: object to find and compare user credentials
  * @returns object isValid(bool): return if the logged in user exist
