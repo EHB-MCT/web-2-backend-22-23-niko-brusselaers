@@ -1,11 +1,4 @@
-/**
- * used sources:
- *      - WEB II backend niko brusselaers: https: //github.com/EHB-MCT/web2-backend-niko-brusselaers
- *      - MongoDb documentation: https: //www.mongodb.com/docs/
- *      - MongoDb remove object from array: https: //stackoverflow.com/questions/15641492/mongodb-remove-object-from-array
- *      - RAWG api documentation: https: //api.rawg.io/docs/
- *      - switch statement javscript: https: //www.w3schools.com/js/js_switch.asp
- */
+
 
 const fetch = (url) => import('node-fetch').then(({
     default: fetch
@@ -13,9 +6,7 @@ const fetch = (url) => import('node-fetch').then(({
 require('dotenv').config({})
 const express = require("express")
 const bodyParser = require("body-parser")
-const {
-    response
-} = require('express')
+const cors = require("cors")
 const {
     MongoClient,
     ServerApiVersion,
@@ -26,6 +17,7 @@ const app = express()
 app.use(bodyParser.urlencoded({
     extended: true
 }))
+app.use(cors())
 app.use(bodyParser.json())
 app.use(express.static('./docs'))
 
@@ -287,7 +279,7 @@ app.get("/getGameFromFavorites", async (request, response) => {
             response.status(500).send({
                 error: error.message
             })
-        } 
+        }
 
     }
 
@@ -339,7 +331,7 @@ app.post("/getUserPreferences", async (request, response) => {
             response.status(500).send({
                 error: error.message
             })
-        } 
+        }
 
 
     }
@@ -391,7 +383,7 @@ app.post('/getUserData', async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } 
+    }
 })
 
 
@@ -461,7 +453,7 @@ app.post("/createAccount", async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } 
+    }
 
 
 })
@@ -527,7 +519,7 @@ app.post("/login", async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } 
+    }
 })
 
 /**
@@ -572,7 +564,7 @@ app.post('/loginId', async (request, response) => {
             error: error.message
         })
         // close the connection to the database
-    } 
+    }
 })
 
 
@@ -631,7 +623,7 @@ app.put("/updateUserGamePreference", async (request, response) => {
             response.status(500).send({
                 error: error.message
             })
-        } 
+        }
     }
 
 })
@@ -728,7 +720,7 @@ app.put("/updateAccount", async (request, response) => {
             response.send(500).send({
                 error: error.message
             })
-        } 
+        }
 
     }
 
@@ -776,7 +768,7 @@ app.delete("/deleteUserGamePreference", async (request, response) => {
         response.status(500).send({
             error: error.message
         })
-    } 
+    }
 
 
 })
@@ -822,6 +814,6 @@ app.delete("/deleteUser", async (request, response) => {
         response.status(500).send({
             error: error.message
         })
-    } 
+    }
 
 })
