@@ -369,7 +369,8 @@ app.post('/getUserData', async (request, response) => {
                     username: user.username,
                     firstname: user.firstname,
                     lastname: user.lastname,
-                    email: user.email
+                    email: user.email,
+                    password: user.password.length
                 }
             })
         } else {
