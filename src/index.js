@@ -585,17 +585,17 @@ app.put("/updateUserGamePreference", async (request, response) => {
             const data = client.db("courseProject").collection("userPreferences")
             let userData = await data.findOne({
                 userID: newUserPreferences.userId,
-                'games.gameId': newUserPreferences.gameId
+                'games.gameId': parseInt(newUserPreferences.gameId)
             })
             // if the game is already there, remove it from the list
             if (userData != null) {
                 userData = await data.findOneAndUpdate({
                     userID: newUserPreferences.userId,
-                    'games.gameId': newUserPreferences.gameId
+                    'games.gameId': parseInt(newUserPreferences.gameId)
                 }, {
                     $pull: {
                         'games': {
-                            "gameId": newUserPreferences.gameId
+                            "gameId": parseInt(newUserPreferences.gameId)
                         }
                     }
                 })
@@ -606,7 +606,7 @@ app.put("/updateUserGamePreference", async (request, response) => {
             }, {
                 $push: {
                     'games': {
-                        'gameId': newUserPreferences.gameId,
+                        'gameId': parseInt(newUserPreferences.gameId),
                         'isLiked': newUserPreferences.isLiked
                     }
                 }
@@ -731,23 +731,23 @@ app.put("/updateAccount", async (request, response) => {
  */
 app.delete("/deleteUserGamePreference", async (request, response) => {
     let updateUserPreferences = request.body.updateUserPreferences
-
+    console.log(updateUserPreferences);
     try {
         await client.connect();
         const data = client.db("courseProject").collection("userPreferences")
-        let userData = await data.findOne({
-            userID: updateUserPreferences.userId,
+        let userData = await data.find({
+            userId: updateUserPreferences.userId,
             'games.gameId': updateUserPreferences.gameId
         })
         // if the game is inside array, remove it from array
         if (userData != null) {
             userData = await data.findOneAndUpdate({
                 userID: updateUserPreferences.userId,
-                'games.gameId': updateUserPreferences.gameId
+                'games.gameId': parseInt(updateUserPreferences.gameId)
             }, {
                 $pull: {
                     'games': {
-                        "gameId": updateUserPreferences.gameId
+                        "gameId": parseInt(updateUserPreferences.gameId)
                     }
                 }
             })
