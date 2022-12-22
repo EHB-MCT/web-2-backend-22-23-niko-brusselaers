@@ -737,13 +737,12 @@ app.delete("/deleteUserGamePreference", async (request, response) => {
         const data = client.db("courseProject").collection("userPreferences")
         let userData = await data.find({
             userId: updateUserPreferences.userId,
-            'games.gameId': updateUserPreferences.gameId
+            'games.gameId': parseInt(updateUserPreferences.gameId)
         })
         // if the game is inside array, remove it from array
         if (userData != null) {
             userData = await data.findOneAndUpdate({
                 userID: updateUserPreferences.userId,
-                'games.gameId': parseInt(updateUserPreferences.gameId)
             }, {
                 $pull: {
                     'games': {
