@@ -1,5 +1,3 @@
-
-
 const fetch = (url) => import('node-fetch').then(({
     default: fetch
 }) => fetch(url));
@@ -182,14 +180,16 @@ app.get("/getRandomGame", async (request, response) => {
  * @returns object with result object game
  */
 app.post("/getGameByPreferences", (request, response) => {
+    console.log(request.body);
     // check if all required data is present in request and if somthing is not present, replace it with default values
     let apiParameters = {
         randomPage: Math.round(Math.random() * 70),
-        genres: request.body.genres || 'action, strategy, rpg, shooter, adventure, puzzle, racing, sports',
-        platform: request.body.platform || '4,6,187,18,1,186,7',
-        tag: request.body.tag || 'Singleplayer, Multiplayer, Co-op, Atmospheric, Full controller support',
+        genres: request.body.genres == null ? request.body.genres : 'action, strategy, rpg, shooter, adventure, puzzle, racing, sports',
+        platform: request.body.platform == null ? request.body.platform : '4,6,187,18,1,186,7',
+        tag: request.body.tag == null ? request.body.tag : 'Singleplayer, Multiplayer, Co-op, Atmospheric, Full controller support',
         metacritic: "70,100"
     }
+    console.log(apiParameters);
     try {
         //fetching a list of games from the api
         fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${apiParameters.randomPage}&page_size=39&platforms=${apiParameters.platform}&metacritic=${apiParameters.metacritic}&platform=${apiParameters.platform}`, {
@@ -576,6 +576,7 @@ app.post('/loginId', async (request, response) => {
  */
 app.put("/updateUserGamePreference", async (request, response) => {
     let updateUserPreferences = request.body.updateUserPreferences
+    console.log(updateUserPreferences);
     // check if all required data is present in request
     if (!updateUserPreferences.userId || !updateUserPreferences.gameId || updateUserPreferences.isLiked == undefined) {
         response.status(400).send({
