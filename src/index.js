@@ -180,7 +180,6 @@ app.get("/getRandomGame", async (request, response) => {
  * @returns object with result object game
  */
 app.post("/getGameByPreferences", (request, response) => {
-    console.log(request.body);
     // check if all required data is present in request and if somthing is not present, replace it with default values
     let apiParameters = {
         randomPage: Math.round(Math.random() * 70),
@@ -189,7 +188,6 @@ app.post("/getGameByPreferences", (request, response) => {
         tag: request.body.tag == null ? request.body.tag : 'Singleplayer, Multiplayer, Co-op, Atmospheric, Full controller support',
         metacritic: "70,100"
     }
-    console.log(apiParameters);
     try {
         //fetching a list of games from the api
         fetch(`https://api.rawg.io/api/games?key=${process.env.RAWG_API_KEY}&page=${apiParameters.randomPage}&page_size=39&platforms=${apiParameters.platform}&metacritic=${apiParameters.metacritic}&platform=${apiParameters.platform}`, {
@@ -346,7 +344,6 @@ app.post("/getUserPreferences", async (request, response) => {
  *  */
 app.post('/getUserData', async (request, response) => {
     let loginWithId = request.body.loginWithId
-    console.log(request.body);
     // check if all required data is present in request
     if (!loginWithId.username || !loginWithId.userId) {
         response.status(401).send({
@@ -575,10 +572,9 @@ app.post('/loginId', async (request, response) => {
  * @params object updateUserPreferences: object to find user and add gameId to their gamePreferences list
  */
 app.put("/updateUserGamePreference", async (request, response) => {
-    let updateUserPreferences = request.body.updateUserPreferences
-    console.log(updateUserPreferences);
+    let newUserPreferences = request.body.newUserPreferences
     // check if all required data is present in request
-    if (!updateUserPreferences.userId || !updateUserPreferences.gameId || updateUserPreferences.isLiked == undefined) {
+    if (!newUserPreferences.userId || !newUserPreferences.gameId || newUserPreferences.isLiked == undefined) {
         response.status(400).send({
             error: "missing data in request"
         })
@@ -588,30 +584,30 @@ app.put("/updateUserGamePreference", async (request, response) => {
             await client.connect();
             const data = client.db("courseProject").collection("userPreferences")
             let userData = await data.findOne({
-                userID: updateUserPreferences.userId,
-                'games.gameId': updateUserPreferences.gameId
+                userID: newUserPreferences.userId,
+                'games.gameId': newUserPreferences.gameId
             })
             // if the game is already there, remove it from the list
             if (userData != null) {
                 userData = await data.findOneAndUpdate({
-                    userID: updateUserPreferences.userId,
-                    'games.gameId': updateUserPreferences.gameId
+                    userID: newUserPreferences.userId,
+                    'games.gameId': newUserPreferences.gameId
                 }, {
                     $pull: {
                         'games': {
-                            "gameId": updateUserPreferences.gameId
+                            "gameId": newUserPreferences.gameId
                         }
                     }
                 })
             }
             // inserting a new object into games array with gameId and isLiked
             userData = await data.findOneAndUpdate({
-                userID: updateUserPreferences.userId
+                userID: newUserPreferences.userId
             }, {
                 $push: {
                     'games': {
-                        'gameId': updateUserPreferences.gameId,
-                        'isLiked': updateUserPreferences.isLiked
+                        'gameId': newUserPreferences.gameId,
+                        'isLiked': newUserPreferences.isLiked
                     }
                 }
             }, {
