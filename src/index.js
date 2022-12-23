@@ -635,7 +635,6 @@ app.put("/updateUserGamePreference", async (request, response) => {
  */
 app.put("/updateAccount", async (request, response) => {
     let updateUserCredentials = request.body.updateUserCredentials
-    console.log(updateUserCredentials);
     if (!updateUserCredentials.userId || !updateUserCredentials.password) {
         response.status(400).send({
             error: "missing userId or password"
@@ -728,7 +727,7 @@ app.put("/updateAccount", async (request, response) => {
 
                     break
                     default:
-                        // if type was definded or not properly, send error response back
+                        // if type was undefined or not properly, send error response back
                         statusCode = 400
                         message = "ok"
                         break
