@@ -635,7 +635,7 @@ app.put("/updateUserGamePreference", async (request, response) => {
  */
 app.put("/updateAccount", async (request, response) => {
     let updateUserCredentials = request.body.updateUserCredentials
-
+    console.log(updateUserCredentials);
     if (!updateUserCredentials.userId || !updateUserCredentials.password) {
         response.status(400).send({
             error: "missing userId or password"
@@ -699,14 +699,43 @@ app.put("/updateAccount", async (request, response) => {
                         message = "ok"
 
                         break
+                    case "firstname":
+
+                    await db.findOneAndUpdate({
+                        '_id': ObjectId(updateUserCredentials.userId)
+                    }, {
+                        $set: {
+                            firstname: updateUserCredentials.newCredential
+
+                        }
+                    })
+                    statusCode = 200
+                    message = "ok"
+
+                    break
+                    case "lastname":
+
+                    await db.findOneAndUpdate({
+                        '_id': ObjectId(updateUserCredentials.userId)
+                    }, {
+                        $set: {
+                            lastname: updateUserCredentials.newCredential
+
+                        }
+                    })
+                    statusCode = 200
+                    message = "ok"
+
+                    break
                     default:
                         // if type was definded or not properly, send error response back
                         statusCode = 400
-                        message = statusCode = 200
                         message = "ok"
                         break
                 }
-                response.status(statusCode).send({message})
+                response.status(statusCode).send({
+                    message
+                })
             }
 
 
@@ -730,7 +759,6 @@ app.put("/updateAccount", async (request, response) => {
  */
 app.delete("/deleteUserGamePreference", async (request, response) => {
     let updateUserPreferences = request.body.updateUserPreferences
-    console.log(updateUserPreferences);
     try {
         await client.connect();
         const data = client.db("courseProject").collection("userPreferences")
