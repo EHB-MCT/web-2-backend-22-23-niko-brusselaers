@@ -654,7 +654,8 @@ app.put("/updateAccount", async (request, response) => {
                     error: "password is not correct"
                 })
             } else {
-
+                let statusCode
+                let message
                 switch (updateUserCredentials.type) {
                     // if type = password, update user password in database
                     case "password":
@@ -666,9 +667,8 @@ app.put("/updateAccount", async (request, response) => {
 
                             }
                         })
-                        response.send(200).send({
-                            message: "ok"
-                        })
+                        statusCode = 200
+                        message = "ok"
                         break
                         // if type = email, update user email in database
                     case "email":
@@ -681,9 +681,8 @@ app.put("/updateAccount", async (request, response) => {
 
                             }
                         })
-                        response.send(200).send({
-                            message: "ok"
-                        })
+                        statusCode = 200
+                        message = "ok"
                         break
                         // if type = username, update user username in database
                     case "username":
@@ -696,18 +695,18 @@ app.put("/updateAccount", async (request, response) => {
 
                             }
                         })
-                        response.send(200).send({
-                            message: "ok"
-                        })
+                        statusCode = 200
+                        message = "ok"
 
                         break
                     default:
                         // if type was definded or not properly, send error response back
-                        response.status(400).send({
-                            error: "the update type was not correctly specified, please choose out of following: password, email, username"
-                        })
+                        statusCode = 400
+                        message = statusCode = 200
+                        message = "ok"
                         break
                 }
+                response.status(statusCode).send({message})
             }
 
 
